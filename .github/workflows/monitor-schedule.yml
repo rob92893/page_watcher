@@ -39,6 +39,8 @@ jobs:
     name: Run Headless Monitor & Automation
     runs-on: ubuntu-latest
     timeout-minutes: 15 # Guard against hanging jobs
+    env:
+      ENABLE_SCREENSHOTS: ${{ secrets.ENABLE_SCREENSHOTS || 'false' }}
 
     steps:
       # Step 1: Check out the repository source code
@@ -87,7 +89,7 @@ jobs:
 
       # Step 6: Upload diagnostic screenshots if errors occurred AND explicitly enabled
       - name: Upload Diagnostic Screenshots
-        if: always() && secrets.ENABLE_SCREENSHOTS == 'true'
+        if: always() && env.ENABLE_SCREENSHOTS == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: diagnostic-screenshots
