@@ -43,15 +43,17 @@ export async function rsvpMacro({ page, targetUrl }) {
   // 2. Identify slot availability
   // Check for common open RSVP indicators vs disabled indicators
   const rsvpButtonSelector = 'button:has-text("RSVP"), button:has-text("Register"), button:has-text("Book"), button:has-text("Buy"), button:has-text("Add to Cart"), button:has-text("Tickets"), a:has-text("RSVP"), a:has-text("Register"), a:has-text("Tickets")';
-  const soldOutSelector = ':has-text("Sold Out"), :has-text("No Slots Available"), :has-text("Waitlist Only"), :has-text("Out of Stock"), button[disabled]';
-  const soldOutIndicator = await page.$(soldOutSelector);
+  
+  const soldOutEl = page.getByText(/Sold Out|No Slots Available|Waitlist Only|Out of Stock/i).first();
+  const isSoldOut = await soldOutEl.isVisible({ timeout: 4000 }).catch(() => false);
+  const disabledButton = await page.locator('button[disabled]:has-text("RSVP"), button[disabled]:has-text("Register"), button[disabled]:has-text("Buy")').first().isVisible({ timeout: 2000 }).catch(() => false);
 
-  if (soldOutIndicator) {
-    const textContent = await soldOutIndicator.textContent().catch(() => 'Unavailable');
+  if (isSoldOut || disabledButton) {
+    const textContent = isSoldOut ? await soldOutEl.innerText().catch(() => 'Sold Out') : 'Button Disabled';
     console.log(`[rsvpMacro] Slot is currently closed/full (${textContent.trim()}). Standing by.`);
     return {
       triggered: false,
-      actionSummary: `Slot currently unavailable (${textContent.trim()}). No action needed.`
+      actionSummary: `Slot currently unavailable (${textContent.trim()}). Standing by.`
     };
   }
 

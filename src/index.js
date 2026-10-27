@@ -122,6 +122,8 @@ export async function runWatcher() {
           waitUntil: 'domcontentloaded',
           timeout: TIMEOUT_MS
         });
+        // Allow dynamic client-side SPAs (e.g. React/Vue) to finish rendering API content
+        await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
 
         // 2. Proactive Roadblock / Captcha Check
         console.log('[Check] Scanning for Cloudflare / reCAPTCHA roadblocks...');
