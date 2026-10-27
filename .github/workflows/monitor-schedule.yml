@@ -1,0 +1,96 @@
+name: Scheduled Page Watcher
+
+# ==============================================================================
+# TRIGGERS
+# ==============================================================================
+on:
+  # 1. Scheduled Cron Trigger
+  # Cron format: (minute hour day-of-month month day-of-week) in UTC
+  schedule:
+    # Runs every 15 minutes by default:
+    - cron: '*/15 * * * *'
+    
+    # --- Alternative Schedule Examples (uncomment to customize) ---
+    # Every 5 minutes:
+    # - cron: '*/5 * * * *'
+    #
+    # Every 30 minutes:
+    # - cron: '*/30 * * * *'
+    #
+    # Every hour at the top of the hour:
+    # - cron: '0 * * * *'
+    #
+    # Every 10 minutes between 9 AM and 6 PM UTC (Monday - Friday):
+    # - cron: '*/10 9-18 * * 1-5'
+
+  # 2. Manual Trigger from GitHub Dashboard
+  workflow_dispatch:
+    inputs:
+      watch_urls:
+        description: 'Optional: Comma-separated list of target URLs to watch (leave empty for defaults)'
+        required: false
+        default: ''
+
+# ==============================================================================
+# JOBS DEFINITION
+# ==============================================================================
+jobs:
+  monitor:
+    name: Run Headless Monitor & Automation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15 # Guard against hanging jobs
+
+    steps:
+      # Step 1: Check out the repository source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js with package dependency caching
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      # Step 3: Install project npm packages (clean install)
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: Install Chromium and Linux OS system dependencies / fonts
+      # --with-deps automatically installs all missing Ubuntu shared libraries & fonts
+      - name: Install Playwright Chromium with OS Dependencies
+        run: npx playwright install --with-deps chromium
+
+      # Step 5: Execute the wait-and-act automation pipeline
+      - name: Run Page Watcher Pipeline
+        env:
+          # Resend Email Secrets
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
+          ALERT_EMAIL_FROM: ${{ secrets.ALERT_EMAIL_FROM }}
+
+          # TextBelt SMS Secrets
+          TEXTBELT_API_KEY: ${{ secrets.TEXTBELT_API_KEY }}
+          ALERT_PHONE_NUMBER: ${{ secrets.ALERT_PHONE_NUMBER }}
+
+          # Registration / Form Filling Details
+          REGISTRATION_NAME: ${{ secrets.REGISTRATION_NAME }}
+          REGISTRATION_EMAIL: ${{ secrets.REGISTRATION_EMAIL }}
+          REGISTRATION_PHONE: ${{ secrets.REGISTRATION_PHONE }}
+
+          # Headless and Workflow Dispatch Inputs
+          HEADLESS: 'true'
+          WATCH_URLS: ${{ github.event.inputs.watch_urls || secrets.WATCH_URLS || '' }}
+          # Keep screenshots disabled ('false') on public repositories to avoid saving rendered personal inputs in downloadable artifacts
+          ENABLE_SCREENSHOTS: ${{ secrets.ENABLE_SCREENSHOTS || 'false' }}
+        run: npm start
+
+      # Step 6: Upload diagnostic screenshots if errors occurred AND explicitly enabled
+      - name: Upload Diagnostic Screenshots
+        if: always() && secrets.ENABLE_SCREENSHOTS == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostic-screenshots
+          path: screenshots/
+          if-no-files-found: ignore
+          retention-days: 7

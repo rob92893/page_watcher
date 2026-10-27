@@ -1,0 +1,27 @@
+{
+  "name": "page-watcher",
+  "version": "1.0.0",
+  "description": "Cloud-scheduled web-scraping and wait-and-act automation pipeline using Playwright and GitHub Actions with SMS/Email fallback alerts.",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node test/local-test.js"
+  },
+  "keywords": [
+    "playwright",
+    "scraper",
+    "automation",
+    "github-actions",
+    "resend",
+    "textbelt",
+    "captcha-detection"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "playwright": "^1.49.1",
+    "resend": "^4.1.2"
+  }
+}
