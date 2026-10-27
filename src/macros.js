@@ -42,8 +42,8 @@ export async function rsvpMacro({ page, targetUrl }) {
 
   // 2. Identify slot availability
   // Check for common open RSVP indicators vs disabled indicators
-  const rsvpButtonSelector = 'button:has-text("RSVP"), button:has-text("Register"), button:has-text("Book Slot"), a:has-text("RSVP")';
-  const soldOutSelector = ':has-text("Sold Out"), :has-text("No Slots Available"), :has-text("Waitlist Only"), button[disabled]';
+  const rsvpButtonSelector = 'button:has-text("RSVP"), button:has-text("Register"), button:has-text("Book"), button:has-text("Buy"), button:has-text("Add to Cart"), button:has-text("Tickets"), a:has-text("RSVP"), a:has-text("Register"), a:has-text("Tickets")';
+  const soldOutSelector = ':has-text("Sold Out"), :has-text("No Slots Available"), :has-text("Waitlist Only"), :has-text("Out of Stock"), button[disabled]';
   const soldOutIndicator = await page.$(soldOutSelector);
 
   if (soldOutIndicator) {
@@ -55,20 +55,23 @@ export async function rsvpMacro({ page, targetUrl }) {
     };
   }
 
-  // Wait for the RSVP / Register button to be visible and enabled
-  console.log('[rsvpMacro] Checking for active RSVP button...');
+  // The page NO LONGER shows "Sold Out"!
+  console.log('[rsvpMacro] 🚨 State change detected! Page no longer shows Sold Out!');
+
+  // Check for active action button
+  console.log('[rsvpMacro] Checking for active RSVP / Buy button...');
   const rsvpButton = page.locator(rsvpButtonSelector).first();
   const isAvailable = await rsvpButton.isVisible({ timeout: 5000 }).catch(() => false);
 
   if (!isAvailable) {
-    console.log('[rsvpMacro] RSVP button not visible or still disabled.');
-    return {
-      triggered: false,
-      actionSummary: 'RSVP button not visible or not yet active.'
-    };
+    // Alert user immediately via fallback system so they can act manually
+    throw new RoadblockError(
+      'Restock / Open Slot Detected: Page is no longer Sold Out!',
+      'Page state changed from Sold Out to active, but an automated form button was not recognized. Please open the link and complete registration manually.'
+    );
   }
 
-  // Slot is detected as open! Trigger macro actions.
+  // Slot is detected as open and button is visible! Trigger macro actions.
   console.log('[rsvpMacro] Slot is OPEN! Initiating registration macro...');
 
   // Click the RSVP / Register trigger
@@ -234,5 +237,5 @@ export function getMacroForUrl(url) {
   }
 
   // Default fallback if no specific macro mapped: use rsvpMacro
-  return null;
+  return rsvpMacro;
 }

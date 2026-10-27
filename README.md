@@ -1,4 +1,4 @@
-# Page Watcher 🕵️‍♂️⚡
+# Page Watcher
 
 An automated, serverless web-scraping and **"wait-and-act"** pipeline powered by **Playwright (Node.js)** and **GitHub Actions**.
 
@@ -6,7 +6,7 @@ It monitors dynamic web pages on a cloud schedule (GitHub Actions Cron) for stat
 
 ---
 
-## 📋 Architecture & Features
+## Architecture & Features
 
 ```mermaid
 flowchart TD
@@ -39,7 +39,7 @@ flowchart TD
 
 ---
 
-## 🛠️ Project Structure
+## Project Structure
 
 ```
 ├── .github/
@@ -57,7 +57,7 @@ flowchart TD
 
 ---
 
-## ⚙️ Configuration & GitHub Secrets
+## Configuration & GitHub Secrets
 
 To run this pipeline in GitHub Actions, navigate to your GitHub Repository:
 **Settings > Secrets and variables > Actions > New repository secret** and add:
@@ -75,7 +75,7 @@ To run this pipeline in GitHub Actions, navigate to your GitHub Repository:
 
 ---
 
-## 🚀 Local Development & Testing
+## Local Development & Testing
 
 ### 1. Install Dependencies
 ```bash
@@ -100,7 +100,7 @@ HEADLESS=false npm start
 
 ---
 
-## ⏱️ Modifying the Cron Schedule
+## Modifying the Cron Schedule
 
 Open [`.github/workflows/monitor-schedule.yml`](.github/workflows/monitor-schedule.yml) and edit the `schedule` block:
 
@@ -124,7 +124,7 @@ You can also trigger runs manually at any time from the GitHub UI using **Action
 
 ---
 
-## 🧩 Adding Custom Target URLs & Macros
+## Adding Custom Target URLs & Macros
 
 In [`src/macros.js`](src/macros.js), register your target URLs in `urlMacroRegistry`:
 
